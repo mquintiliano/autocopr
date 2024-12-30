@@ -1,31 +1,35 @@
-Name:           ghostty
-Version:        1.0.0
-Release:        2%{?dist}
-Summary:        Fast, feature-rich, and cross-platform terminal emulator that uses platform-native UI and GPU acceleration
+###
+# Inspiration taken from https://gitlab.com/pgill/ghostty-rpm
+###
+%global debug_package %{nil}
+%global tmp_dir /tmp/offline-cache
 
+Name:    ghostty
+Version: 1.0.0
+Release: 1%{?dist}
+Summary: 👻 Ghostty is a fast, feature-rich, and cross-platform terminal emulator that uses platform-native UI and GPU acceleration.
 
-License:        MIT
-URL:            https://github.com/ghostty-org/ghostty
-Source0:        https://github.com/ghostty-org/ghostty/archive/refs/tags/v%{version}.tar.gz
+License: MIT
+URL: https://github.com/ghostty-org/ghostty
+Source:  %{url}/archive/refs/tags/v%{version}.tar.gz
 
+ExclusiveArch: x86_64
 
-ExclusiveArch: x86_64 aarch64
-
+# https://ghostty.org/docs/install/build#dependencies
+BuildRequires: zig >= 0.13
+BuildRequires: gtk4-devel
+BuildRequires: libadwaita-devel
 
 BuildRequires: fontconfig-devel
 BuildRequires: freetype-devel
 BuildRequires: glib2-devel
-BuildRequires: gtk4-devel
 BuildRequires: harfbuzz-devel
-BuildRequires: libadwaita-devel
 BuildRequires: libpng-devel
 BuildRequires: oniguruma-devel
 BuildRequires: pandoc-cli
 BuildRequires: pixman-devel
 BuildRequires: pkg-config
-BuildRequires: zig
 BuildRequires: zlib-ng-devel
-
 
 Requires: fontconfig
 Requires: freetype
@@ -39,20 +43,21 @@ Requires: pixman
 Requires: zlib-ng
 
 
-%description
-%{summary}.
 
+%description
+%{summary}
 
 %prep
-%setup -q -n ghostty-%{version}
-
+%autosetup -n %{name}-%{version}
 
 %build
-ZIG_GLOBAL_CACHE_DIR=/tmp/offline-cache ./nix/build-support/fetch-zig-cache.sh
+mkdir -p %{tmp_dir}
+mkdir -p %{ghostty_tmp_dir}
+ZIG_GLOBAL_CACHE_DIR=%{tmp_dir} ./nix/build-support/fetch-zig-cache.sh
 zig build \
     --summary all \
     --prefix "%{buildroot}%{_prefix}" \
-    --system "/tmp/offline-cache/p" \
+    --system "%{tmp_dir}/p" \
     -Doptimize=ReleaseFast \
     -Dcpu=baseline \
     -Dpie=true \
@@ -91,7 +96,5 @@ zig build \
 %{_prefix}/share/vim/vimfiles/syntax/ghostty.vim
 %{_prefix}/share/zsh/site-functions/_ghostty
 
-
 %changelog
 %autochangelog
-
